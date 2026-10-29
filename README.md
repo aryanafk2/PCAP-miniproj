@@ -60,3 +60,18 @@ python scripts/measure_energy.py --seconds 15
 Python scripts use only the standard library. Add `--include-team-code` to
 experiments only after MPI/OpenMP are implemented. See
 [initial validation](docs/initial_validation.md) for the measured results.
+
+## CUDA Experiments
+
+```text
+scripts\build_cuda.bat
+build\cuda.exe --describe --block 256
+python scripts/test_cuda_tools.py
+python scripts/run_cuda_study.py --runs 100 --baseline-runs 30
+python scripts/measure_energy.py --seconds 20 --repeats 3
+```
+
+The CUDA study sweeps sample sizes, stream strategies, block sizes and
+integration dimensions. Analysis separates kernel time, total time, estimator
+variance and confidence-interval coverage. Energy uses complete sustained
+workload windows with timestamp-aligned GPU power readings.
