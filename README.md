@@ -67,6 +67,8 @@ experiments only after MPI/OpenMP are implemented. See
 scripts\build_cuda.bat
 build\cuda.exe --describe --block 256
 python scripts/test_cuda_tools.py
+python scripts/validate_cuda.py
+python scripts/profile_cuda.py --output results/cuda_study_PROFILE/profiling/counter_study
 python scripts/run_cuda_study.py --runs 100 --baseline-runs 30
 python scripts/measure_energy.py --seconds 20 --repeats 3
 ```

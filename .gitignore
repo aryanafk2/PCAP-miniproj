@@ -22,5 +22,6 @@ legacy/
 /results/**/*.json
 /results/cuda_study_*/
 /results/cuda_energy_*/
+/results/cuda_validation_*/
 /scripts/cuda_report.py
 /requirements-analysis.txt
