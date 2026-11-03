@@ -1,0 +1,6 @@
+**/node_modules/
+**/*.log
+**/*.blg
+**/*.aux
+**/*.out
+**/*.bbl

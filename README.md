@@ -5,6 +5,13 @@ Public repository: https://github.com/aryanafk2/PCAP-miniproj
 Sequential C++ baseline, OpenMP, MPI, and CUDA implementations with a local demonstration dashboard.
 Target machine: one Windows laptop with an NVIDIA RTX 5060 Laptop GPU.
 
+## Reports and Presentation
+
+- [IEEE report](artifacts/reports/ieee.pdf) · [Springer report](artifacts/reports/springer.pdf)
+- [PowerPoint slides](artifacts/presentation/parallel_monte_carlo.pptx) · [Slide PDF](artifacts/presentation/parallel_monte_carlo.pdf)
+- [Speaker notes](artifacts/presentation/speaker_notes.md) · [Recorded measurements](artifacts/data/README.md)
+- [Report sources and rebuild instructions](artifacts/README.md)
+
 ## Contributors
 
 | Member | Component |

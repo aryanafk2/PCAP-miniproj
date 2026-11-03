@@ -1,0 +1,4 @@
+repeat,samples,block,runs,window_seconds,completed_samples,gpu_energy_j,avg_gpu_power_w,samples_per_joule,power_readings,max_query_ms,scope,limitation
+1,1000000000,256,275,20.014749,275000000000,877.7260817737499,43.85396398294827,313309591.3525404,124,85.0839,"GPU-only, sustained workload including host gaps and CSV output",Coarse power polling and boundary interpolation; no per-kernel energy or CPU/system comparison
+2,1000000000,256,275,20.0515491,275000000000,915.95829827325,45.680176314818986,300232008.94453996,123,90.1631,"GPU-only, sustained workload including host gaps and CSV output",Coarse power polling and boundary interpolation; no per-kernel energy or CPU/system comparison
+3,1000000000,256,275,20.0668257,275000000000,929.8388911625,46.33711903734231,295750159.1014229,126,76.4958,"GPU-only, sustained workload including host gaps and CSV output",Coarse power polling and boundary interpolation; no per-kernel energy or CPU/system comparison

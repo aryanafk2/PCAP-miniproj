@@ -1,0 +1,12 @@
+We compare sequential C++, OpenMP, local MPI and CUDA implementations of
+Monte Carlo pi estimation and a known multidimensional integral. Evaluation
+separates estimator variance from runtime dispersion and tests interval
+coverage under separated and repeated streams. Three shuffled rounds give
+30 distinct seeds per configuration. At ten million samples, eight-worker
+OpenMP and MPI median speedups are 3.98 and 3.34; CUDA reaches 68.00,
+including different RNG-family work. A separate 100-trial CUDA study at
+one billion samples gives coverage 98/100 with separated streams and 12/100
+with repeated streams. Hardware counters support an FP64 arithmetic bottleneck
+for the tested kernels, and sustained telemetry quantifies gross GPU-only
+energy. This is an applied comparative study on one laptop; it does not
+establish universal RNG independence or a new Monte Carlo algorithm.

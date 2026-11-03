@@ -1,0 +1,11 @@
+{
+  "name": "pcap-presentation",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node build_presentation.cjs"
+  },
+  "dependencies": {
+    "pptxgenjs": "4.0.1"
+  }
+}
