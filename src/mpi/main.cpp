@@ -1,4 +1,4 @@
-// Owner: Rajrup Mal. MPI lifecycle is ready; distributed counting is TODO.
+// Component: Rajrup Mal. MPI ranks share chunk IDs, not random engine state.
 #include "../common.hpp"
 #include <mpi.h>
 
@@ -10,20 +10,27 @@ int main(int argc, char** argv) {
     try {
         auto o = parse_options(argc, argv);
         o.workers = size;
-        if (!o.allow_starter) throw std::runtime_error("MPI starter: complete TODOs, or use --allow-starter for rank-0 reference output.");
         if (rank == 0) csv_header();
         for (int run = -o.warmups; run < o.runs; ++run) {
             auto seed = o.seed + static_cast<std::uint64_t>(std::max(0, run));
             MPI_Barrier(MPI_COMM_WORLD);
             double start = MPI_Wtime();
-            Moments m;
-            // TODO(Rajrup): assign chunks rank, rank+size, ... to each rank;
-            // use MPI_Reduce(MPI_SUM) for sum and squares. Handle remainders
-            // through cpu_chunk() and keep rank out of the chunk seed.
-            if (rank == 0) m = serial_count(o, seed);
+            const auto chunks = (o.samples + chunk_size - 1)/chunk_size;
+            double local[2] = {0, 0}, combined[2] = {0, 0};
+            // Round-robin ownership covers every chunk exactly once. Ranks
+            // with no chunks still participate in every collective operation.
+            for (std::uint64_t chunk = rank; chunk < chunks; chunk += size) {
+                auto part = cpu_chunk(chunk, o, seed);
+                local[0] += part.sum;
+                local[1] += part.squares;
+            }
+            MPI_Reduce(local, combined, 2, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+            Moments m{combined[0], combined[1]};
+            // Include sampling and the moment reduction. The pre-trial barrier,
+            // MPI startup and the timing-metadata reduction are excluded.
             double local_ms = 1000*(MPI_Wtime()-start), max_ms = 0;
             MPI_Reduce(&local_ms, &max_ms, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-            if (rank == 0 && run >= 0) print_result(o, "mpi", "starter_rank0", "mt19937_64", run+1, seed, m, max_ms);
+            if (rank == 0 && run >= 0) print_result(o, "mpi", "implemented", "mt19937_64", run+1, seed, m, max_ms);
         }
         MPI_Finalize();
         return 0;

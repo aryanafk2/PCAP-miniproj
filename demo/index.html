@@ -1,0 +1,1535 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Parallel / Monte Carlo Lab</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f1e9;
+        --panel: #faf9f5;
+        --line: #c7c6bc;
+        --muted: #5a625e;
+        --teal: #185b4f;
+        --coral: #9c452e;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: #202824;
+        font:
+          15px/1.55 Arial,
+          sans-serif;
+      }
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+      button,
+      select {
+        cursor: pointer;
+      }
+      :focus-visible {
+        outline: 3px solid #a3502d;
+        outline-offset: 4px;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 258px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+      aside {
+        padding: 32px 23px 45px;
+        background: #e9e7dd;
+        border-right: 1px solid var(--line);
+      }
+      .brand {
+        font:
+          30px Georgia,
+          serif;
+        letter-spacing: -1px;
+        margin-bottom: 43px;
+      }
+      .brand b {
+        color: var(--teal);
+        margin-right: 10px;
+      }
+      .brand small {
+        display: block;
+        font:
+          10px Arial,
+          sans-serif;
+        letter-spacing: 2px;
+        margin: 9px 0 0 32px;
+        color: var(--muted);
+      }
+      fieldset {
+        border: 0;
+        padding: 0;
+        margin: 0;
+      }
+      legend,
+      .eyebrow {
+        font:
+          10px Arial,
+          sans-serif;
+        letter-spacing: 1.8px;
+        text-transform: uppercase;
+        color: var(--teal);
+        margin: 0 0 14px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: bold;
+        margin: 20px 0 6px;
+      }
+      input,
+      select {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid #a4aaa0;
+        border-radius: 0;
+        background: #fcfbf8;
+        color: #202824;
+        padding: 9px 8px;
+      }
+      select:disabled {
+        opacity: 0.5;
+      }
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 13px;
+      }
+      .help {
+        font-size: 12px;
+        line-height: 1.6;
+        color: var(--muted);
+        margin: 7px 0 0;
+      }
+      .button {
+        min-height: 40px;
+        border: 1px solid #7d8e82;
+        border-radius: 0;
+        background: transparent;
+        color: #263d31;
+        padding: 9px 13px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .button:hover:not(:disabled) {
+        background: #e3e9df;
+      }
+      .primary {
+        width: 100%;
+        background: #225346;
+        color: white;
+        border-color: #225346;
+        margin-top: 24px;
+        font-size: 14px;
+      }
+      .primary:hover:not(:disabled) {
+        background: #143b31;
+      }
+      .warning {
+        color: #853c28;
+        font-size: 12px;
+        border-left: 3px solid #ad5b37;
+        padding: 10px 12px;
+        background: #f5e6d7;
+      }
+      .side-note {
+        border-top: 1px solid var(--line);
+        padding-top: 23px;
+        margin-top: 30px;
+      }
+      main {
+        padding: 38px clamp(22px, 4vw, 65px) 28px;
+        max-width: 1630px;
+        width: 100%;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font:
+          clamp(34px, 3.2vw, 52px) / 1.05 Georgia,
+          serif;
+        letter-spacing: -1.5px;
+        max-width: 700px;
+      }
+      h2 {
+        font:
+          25px/1.2 Georgia,
+          serif;
+        font-weight: normal;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 30px;
+        padding-bottom: 24px;
+        border-bottom: 2px solid #263d31;
+      }
+      header p:last-child {
+        color: var(--muted);
+        font-size: 14px;
+        margin-top: 17px;
+        max-width: 570px;
+      }
+      .pill {
+        font: 11px/1.7 monospace;
+        text-align: right;
+        letter-spacing: 1px;
+        max-width: 110px;
+        padding-top: 5px;
+      }
+      .status {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+        align-items: center;
+        margin: 18px 0;
+      }
+      .badge {
+        font-size: 11px;
+        color: #646b64;
+        border-bottom: 1px solid var(--line);
+        padding: 4px 5px;
+      }
+      .ready {
+        color: #245948;
+        border-color: #7a9a83;
+      }
+      .status .help {
+        margin: 0 auto 0 0;
+      }
+      .text-button {
+        border: 0;
+        background: none;
+        color: var(--teal);
+        padding: 8px;
+        font-size: 12px;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      .notice {
+        padding: 12px 0;
+        font-size: 13px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 22px;
+      }
+      .running {
+        color: var(--teal);
+        font-weight: bold;
+      }
+      .running::before {
+        content: "◌ ";
+      }
+      .error {
+        padding: 15px;
+        background: #f6ded3;
+        border-left: 4px solid #9b462e;
+        color: #702c1a;
+        margin: 15px 0;
+      }
+      .cards {
+        display: flex;
+        gap: 0;
+        margin: 28px 0 39px;
+        border-bottom: 1px solid var(--line);
+      }
+      .card {
+        flex: 1;
+        padding: 0 17px 22px;
+        border-left: 1px solid var(--line);
+        min-width: 0;
+      }
+      .card:first-child {
+        flex: 1.25;
+        border-left: 0;
+        padding-left: 0;
+      }
+      .card-label {
+        font-size: 12px;
+        color: var(--muted);
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .card-label span:last-child {
+        font-size: 9px;
+        letter-spacing: 1px;
+      }
+      .value {
+        font:
+          36px/1.2 Georgia,
+          serif;
+        margin-top: 14px;
+        color: var(--accent);
+      }
+      .unit {
+        font:
+          12px Arial,
+          sans-serif;
+        color: var(--muted);
+        margin-left: 5px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(250px, 1fr);
+        gap: 37px;
+      }
+      .panel {
+        padding: 0;
+      }
+      .grid > .panel:first-child {
+        padding: 6px 0 20px;
+      }
+      .grid > .panel:last-child {
+        background: #e7e9de;
+        padding: 25px 22px 19px;
+        border-top: 3px solid #637c68;
+        align-self: start;
+      }
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 18px;
+      }
+      .chart {
+        min-height: 235px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 25px;
+        margin-top: 21px;
+      }
+      .chart-row {
+        display: grid;
+        grid-template-columns: 85px minmax(0, 1fr) 85px;
+        gap: 12px;
+        align-items: center;
+        font-size: 12px;
+      }
+      .track {
+        height: 12px;
+        background: #dedfd5;
+        overflow: hidden;
+      }
+      .bar {
+        height: 100%;
+      }
+      .timing {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .empty {
+        text-align: left;
+        color: var(--muted);
+        font-size: 14px;
+        padding: 25px 10px;
+      }
+      .empty-icon {
+        display: block;
+        font-size: 27px;
+        color: #7a8c7a;
+        margin-bottom: 12px;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 215px;
+        margin-top: 13px;
+      }
+      .table-panel {
+        margin-top: 38px;
+        border-top: 2px solid #334b3c;
+        padding-top: 24px;
+      }
+      .actions {
+        display: flex;
+        gap: 8px;
+      }
+      .table-wrap {
+        overflow: auto;
+        margin-top: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+        text-align: left;
+        font-size: 12px;
+      }
+      th,
+      td {
+        border-bottom: 1px solid #d0d3c8;
+        padding: 15px 10px;
+        font-variant-numeric: tabular-nums;
+      }
+      th {
+        color: #4c5d50;
+        font-size: 10px;
+        letter-spacing: 0.7px;
+        text-transform: uppercase;
+        font-weight: bold;
+      }
+      thead {
+        background: #e9ecdf;
+      }
+      th:first-child,
+      td:first-child {
+        padding-left: 8px;
+      }
+      caption {
+        text-align: left;
+        padding: 0 0 12px;
+        font-size: 12px;
+      }
+      .notes {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 36px;
+        margin-top: 29px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .notes strong {
+        color: #253b2d;
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        margin-top: 32px;
+        padding-top: 15px;
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        font:
+          10px Arial,
+          sans-serif;
+        letter-spacing: 0.6px;
+        color: var(--muted);
+      }
+      summary {
+        cursor: pointer;
+        font:
+          17px Georgia,
+          serif;
+      }
+      details {
+        border-left: 2px solid #718a73;
+        padding-left: 15px;
+      }
+      .explain {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 17px;
+        height: 17px;
+        padding: 0;
+        margin-left: 6px;
+        vertical-align: middle;
+        border: 1px solid #88978b;
+        border-radius: 50%;
+        color: #365443;
+        background: transparent;
+        font:
+          bold 10px Arial,
+          sans-serif;
+        text-transform: none;
+        letter-spacing: 0;
+        cursor: help;
+      }
+      .explain:hover,
+      .explain:focus {
+        background: #244c3d;
+        color: white;
+      }
+      .explanation {
+        position: fixed;
+        z-index: 50;
+        width: min(350px, calc(100vw - 28px));
+        padding: 18px 21px;
+        background: #fffef9;
+        border: 1px solid #405e49;
+        border-top: 4px solid #405e49;
+        color: #25362b;
+        font:
+          13px/1.6 Arial,
+          sans-serif;
+        box-shadow: 3px 4px 0 #b9bcae;
+      }
+      .explanation strong {
+        display: block;
+        font:
+          18px Georgia,
+          serif;
+        margin-bottom: 8px;
+      }
+      .explanation p {
+        margin: 8px 0 0;
+      }
+      .explanation small {
+        display: block;
+        color: #64705f;
+        margin-top: 10px;
+      }
+      .tip-hint {
+        font-size: 11px;
+        color: #596956;
+        max-width: 250px;
+        margin-top: 16px;
+      }
+      @media (max-width: 1150px) {
+        .layout {
+          grid-template-columns: 235px minmax(0, 1fr);
+        }
+        aside {
+          padding: 28px 17px;
+        }
+        .cards {
+          flex-wrap: wrap;
+        }
+        .card,
+        .card:first-child {
+          flex: auto;
+          width: 50%;
+          padding: 10px 12px 20px;
+        }
+        .card:nth-child(3) {
+          border-left: 0;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .grid > .panel:last-child {
+          max-width: 540px;
+          width: 100%;
+        }
+        .pill {
+          display: none;
+        }
+      }
+      @media (max-width: 750px) {
+        .layout {
+          display: block;
+        }
+        aside {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+          padding: 24px;
+        }
+        .brand {
+          margin-bottom: 23px;
+        }
+        fieldset {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0 16px;
+        }
+        .pair {
+          display: contents;
+        }
+        .side-note {
+          display: none;
+        }
+        main {
+          padding: 28px 20px;
+        }
+        .panel-head {
+          flex-wrap: wrap;
+        }
+        .notes {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        .chart-row {
+          grid-template-columns: 70px minmax(0, 1fr) 75px;
+          gap: 9px;
+        }
+        .value {
+          font-size: 30px;
+        }
+        footer {
+          flex-wrap: wrap;
+        }
+        h1 {
+          font-size: 38px;
+        }
+        .tip-hint {
+          max-width: none;
+        }
+      }
+      @media (max-width: 370px) {
+        fieldset {
+          display: block;
+        }
+        .cards {
+          display: block;
+        }
+        .card,
+        .card:first-child {
+          width: 100%;
+          border-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside aria-label="Experiment controls">
+        <div class="brand">
+          <b aria-hidden="true">∥</b>Parallel<small>Monte Carlo Lab</small>
+        </div>
+        <form id="experiment">
+          <fieldset id="controls">
+            <legend>01 / Configure experiment</legend>
+            <div>
+              <label for="samples">Samples per trial</label
+              ><input
+                id="samples"
+                type="number"
+                min="10000"
+                max="10000000"
+                step="1"
+                value="1000000"
+                required
+                aria-describedby="sample-help"
+              />
+              <p id="sample-help" class="help">10,000 – 10,000,000 samples</p>
+            </div>
+            <div class="pair">
+              <div>
+                <label for="runs">Trials</label
+                ><select id="runs">
+                  <option>3</option>
+                  <option selected>5</option>
+                  <option>10</option>
+                </select>
+              </div>
+              <div>
+                <label for="workers">CPU workers</label
+                ><select id="workers">
+                  <option>1</option>
+                  <option>2</option>
+                  <option selected>4</option>
+                  <option>8</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label for="block">CUDA block size</label
+              ><select id="block">
+                <option>128</option>
+                <option selected>256</option>
+                <option>512</option>
+              </select>
+            </div>
+            <div>
+              <label for="problem">Estimation problem</label
+              ><select id="problem">
+                <option value="pi">π · quarter circle</option>
+                <option value="integral">Multidimensional integral</option>
+              </select>
+            </div>
+            <div>
+              <label for="dimensions">Integral dimensions</label
+              ><select id="dimensions" disabled>
+                <option>2</option>
+                <option selected>8</option>
+                <option>16</option>
+                <option>32</option>
+              </select>
+            </div>
+            <div>
+              <label for="rng">Random stream mode</label
+              ><select id="rng" aria-describedby="rng-warning">
+                <option value="separated">Separated streams</option>
+                <option value="repeated">Repeated streams · control</option>
+              </select>
+            </div>
+          </fieldset>
+          <p class="warning" id="rng-warning" hidden>
+            Repeated streams are a control: samples may be duplicated or
+            correlated. The nominal CI must not be interpreted as
+            independent-sample uncertainty.
+          </p>
+          <button class="button primary" id="run" disabled>
+            Run experiment ↗
+          </button>
+          <p class="help">
+            Available backends run sequentially. Allow 30 seconds or longer.
+          </p>
+        </form>
+        <p class="help side-note">
+          LOCAL COMPUTE / LIVE MEASUREMENTS<br /><br />A quick demonstration of
+          parallel estimation, not publication-grade benchmarking.
+        </p>
+      </aside>
+      <main>
+        <header>
+          <div>
+            <p class="eyebrow">Parallel computing / laboratory study</p>
+            <h1>Monte Carlo<br />performance study.</h1>
+            <p>
+              Sequential C++, OpenMP, MPI and CUDA. Compare measured execution
+              time with the reliability of the estimate.
+            </p>
+          </div>
+          <span class="pill">EXPERIMENT<br />NOTEBOOK / 03</span>
+          <p class="tip-hint">
+            Hover, focus or tap a circled ? for what a term means and why it is
+            used.
+          </p>
+        </header>
+        <div class="status" aria-label="Backend availability">
+          <div id="badges" style="display: contents"></div>
+          <span class="help" id="cpu">Checking local compute…</span
+          ><button class="text-button" id="refresh" type="button">
+            Refresh status
+          </button>
+        </div>
+        <div id="error" class="error" role="alert" tabindex="-1" hidden></div>
+        <div class="notice" id="notice" role="status" aria-live="polite">
+          Connecting to the local backend. No measurements yet.
+        </div>
+        <div
+          class="cards"
+          id="cards"
+          aria-label="Median runtime by backend"
+        ></div>
+        <div class="grid">
+          <section class="panel" aria-labelledby="runtime-heading">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">02 / Performance</p>
+                <h2 id="runtime-heading">Time to estimate</h2>
+                <p class="help">
+                  Median runtime in milliseconds · lower is better
+                </p>
+              </div>
+              <span class="badge">Linear scale</span>
+            </div>
+            <div class="chart" id="chart">
+              <div class="empty">
+                <span class="empty-icon" aria-hidden="true">▥</span>Your machine
+                sets the baseline.<br />Run an experiment to reveal measured
+                timings.
+              </div>
+            </div>
+          </section>
+          <section class="panel" aria-labelledby="intuition-heading">
+            <p class="eyebrow">The intuition</p>
+            <h2 id="intuition-heading">The quarter-circle test</h2>
+            <canvas
+              id="illustration"
+              role="img"
+              aria-label="Illustrative points inside and outside a quarter circle; not measured benchmark points."
+            ></canvas>
+            <p class="help">
+              Illustration only — not measured benchmark points. For π, the
+              fraction inside the quarter circle approximates π / 4. The
+              integral samples a higher-dimensional domain.
+            </p>
+          </section>
+        </div>
+        <section class="panel table-panel" aria-labelledby="accuracy-heading">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">03 / Numerical results</p>
+              <h2 id="accuracy-heading">Accuracy & uncertainty</h2>
+              <p class="help" id="settings">No measured results yet.</p>
+            </div>
+            <div class="actions">
+              <button type="button" class="button" id="json" disabled>
+                ↓ JSON</button
+              ><button type="button" class="button" id="csv" disabled>
+                ↓ CSV
+              </button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <caption class="help">
+                Estimate and CI are paired from the last trial. Speedup uses
+                median timing.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Backend</th>
+                  <th scope="col">Last estimate</th>
+                  <th scope="col">Last-trial CI</th>
+                  <th scope="col">Speedup</th>
+                  <th scope="col">Efficiency</th>
+                  <th scope="col">Command time</th>
+                </tr>
+              </thead>
+              <tbody id="results">
+                <tr>
+                  <td colspan="6" class="empty">
+                    Measurements will appear after a successful run.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="help">
+            Command time is reported separately from the median runtime. “—”
+            means unavailable.
+          </p>
+        </section>
+        <section class="panel table-panel" aria-labelledby="variation-heading">
+          <p class="eyebrow">04 / Measurement details</p>
+          <h2 id="variation-heading">Speed and statistical reliability</h2>
+          <div class="table-wrap">
+            <table>
+              <caption class="help">
+                Throughput uses median total trial time. Standard deviations
+                measure different quantities.
+              </caption>
+              <thead>
+                <tr>
+                  <th>Backend</th>
+                  <th>Samples / second</th>
+                  <th>GPU kernel median</th>
+                  <th>Runtime SD</th>
+                  <th>Estimate SD</th>
+                  <th>CI contains truth</th>
+                </tr>
+              </thead>
+              <tbody id="variation">
+                <tr>
+                  <td colspan="6">
+                    Run an experiment to see measured variation.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="help">
+            Coverage is the number of trial intervals containing the known
+            answer. Three to ten trials cannot establish 95% coverage or RNG
+            independence. Repeated streams deliberately violate the interval's
+            independence assumption.
+          </p>
+          <details style="margin-top: 16px">
+            <summary>Explain the mathematics</summary>
+            <p class="help">
+              π: generate (x,y) uniformly in the unit square; count H points
+              with x²+y² ≤ 1. Then π̂ = 4H/N. For sample values Z = 4 or 0, the
+              displayed approximate 95% interval is mean(Z) ± 1.96√(s²/N), where
+              s² is sample variance with denominator N−1. This describes
+              repeated-sampling coverage, not a 95% probability that a fixed π
+              moves inside a particular interval.
+            </p>
+            <p class="help">
+              Integral: f(x) = (x₁² + … + x_d²)/d on [0,1]^d; the exact integral
+              is 1/3 and independent-sample estimator variance is 4/(45dN). It
+              is a simple separable validation case, not a demonstration of
+              overcoming the curse of dimensionality.
+            </p>
+          </details>
+        </section>
+        <div class="notes">
+          <p>
+            <strong>Read the comparison carefully.</strong> CPU uses Mersenne
+            Twister; GPU uses Philox, so this is not a matched-RNG comparison.
+            Warmups and process launch are excluded from median timings. MPI
+            runs locally.
+          </p>
+          <p>
+            <strong>A quick demo, not publication-grade.</strong> Short trials
+            are sensitive to laptop scheduling and frequency changes; observed
+            speedup can exceed ideal worker scaling and efficiency can exceed
+            100%. Values are shown without capping. Speedup uses median timing;
+            the CI describes only the last trial and its estimate, not an
+            aggregate across trials.
+          </p>
+        </div>
+        <footer>
+          <span>PARALLEL / MONTE CARLO LAB</span
+          ><span>Measured locally. No simulated benchmark results.</span>
+        </footer>
+      </main>
+    </div>
+    <script>
+      "use strict";
+      const $ = (id) => document.getElementById(id),
+        names = {
+          sequential: "Sequential",
+          openmp: "OpenMP",
+          mpi: "MPI",
+          cuda: "CUDA",
+        },
+        colors = {
+          sequential: "#6b7065",
+          openmp: "#28644d",
+          mpi: "#9a7536",
+          cuda: "#ae5336",
+        };
+      let available = {},
+        busy = false,
+        checking = false,
+        measured = null;
+      const fmt = (v, d = 3) =>
+        Number.isFinite(v)
+          ? v.toLocaleString(undefined, { maximumFractionDigits: d })
+          : "—";
+      function el(tag, text, cls) {
+        const n = document.createElement(tag);
+        if (text !== undefined) n.textContent = text;
+        if (cls) n.className = cls;
+        return n;
+      }
+      function showError(message) {
+        $("error").textContent = message;
+        $("error").hidden = false;
+        $("error").focus();
+      }
+      function sync() {
+        $("run").disabled =
+          busy || checking || !Object.keys(names).some((k) => available[k]);
+        $("refresh").disabled = busy || checking;
+        $("controls").disabled = busy;
+        $("dimensions").disabled = busy || $("problem").value === "pi";
+        $("rng-warning").hidden = $("rng").value !== "repeated";
+        $("json").disabled = $("csv").disabled = busy || !measured;
+      }
+      function cards(rows = []) {
+        $("cards").replaceChildren();
+        for (const k of Object.keys(names)) {
+          const r = rows.find((r) => r.backend === k),
+            card = el("article", undefined, "card");
+          card.style.setProperty("--accent", colors[k]);
+          const label = el("div", undefined, "card-label");
+          label.append(
+            el("span", names[k]),
+            el(
+              "span",
+              r ? "MEASURED" : available[k] === false ? "OFFLINE" : "—",
+            ),
+          );
+          const value = el("div", r ? fmt(r.median_ms) : "—", "value");
+          if (r) value.append(el("span", " ms", "unit"));
+          card.append(
+            label,
+            value,
+            el(
+              "p",
+              r
+                ? fmt(r.speedup, 2) + "× speedup · median of trials"
+                : "Awaiting measurement",
+              "help",
+            ),
+          );
+          $("cards").append(card);
+        }
+      }
+      async function jsonResponse(response) {
+        let data;
+        try {
+          data = await response.json();
+        } catch {
+          throw Error(
+            "The server did not return valid JSON. Open this page through the local benchmark server.",
+          );
+        }
+        if (!response.ok || data.error)
+          throw Error(
+            data.error || "Request failed (HTTP " + response.status + ").",
+          );
+        return data;
+      }
+      async function status() {
+        checking = true;
+        sync();
+        $("error").hidden = true;
+        try {
+          const data = await jsonResponse(
+            await fetch("/api/status", { cache: "no-store" }),
+          );
+          if (
+            !data.backends ||
+            !Object.keys(names).every(
+              (k) => typeof data.backends[k] === "boolean",
+            )
+          )
+            throw Error(
+              "Backend availability is missing from the status response.",
+            );
+          available = data.backends;
+          $("cpu").textContent = fmt(data.cpu_threads, 0) + " CPU threads";
+          $("notice").textContent = measured
+            ? "Backend status refreshed. Previous measurements retained."
+            : Object.keys(names).some((k) => available[k])
+              ? "Ready when you are. Run an experiment to measure all available backends."
+              : "No backends available. Build or enable a backend, then refresh status.";
+        } catch (e) {
+          available = {};
+          $("cpu").textContent = "Backend unreachable";
+          $("notice").textContent = "Waiting for the local backend.";
+          showError(e.message);
+        } finally {
+          $("badges").replaceChildren();
+          for (const k of Object.keys(names))
+            $("badges").append(
+              el(
+                "span",
+                "● " +
+                  names[k] +
+                  " · " +
+                  (available[k] === true
+                    ? "ready"
+                    : available[k] === false
+                      ? "unavailable"
+                      : "unknown"),
+                "badge" + (available[k] ? " ready" : ""),
+              ),
+            );
+          checking = false;
+          cards(measured?.results);
+          sync();
+        }
+      }
+      // All chart values come from executable output; the last-trial estimate
+      // and its confidence interval remain paired, while timing uses medians.
+      function render(data, request) {
+        cards(data.results);
+        $("variation").replaceChildren();
+        for (const r of data.results) {
+          const tr = el("tr");
+          for (const value of [
+            names[r.backend],
+            fmt(r.samples_per_sec, 0),
+            Number.isFinite(r.kernel_median_ms)
+              ? fmt(r.kernel_median_ms, 4) + " ms"
+              : "—",
+            fmt(r.runtime_std_ms, 4) + " ms",
+            Number(r.estimator_std).toExponential(3),
+            r.coverage_count + " / " + r.rows.length,
+          ])
+            tr.append(el("td", value));
+          $("variation").append(tr);
+        }
+        $("chart").replaceChildren();
+        const max = Math.max(...data.results.map((r) => r.median_ms), 0);
+        for (const r of data.results) {
+          const line = el("div", undefined, "chart-row"),
+            track = el("div", undefined, "track"),
+            bar = el("div", undefined, "bar");
+          bar.style.width = (max ? (r.median_ms / max) * 100 : 0) + "%";
+          bar.style.background = colors[r.backend];
+          track.append(bar);
+          track.setAttribute("aria-hidden", "true");
+          line.append(
+            el("span", names[r.backend]),
+            track,
+            el("span", fmt(r.median_ms) + " ms", "timing"),
+          );
+          $("chart").append(line);
+        }
+        $("results").replaceChildren();
+        for (const r of data.results) {
+          const tr = el("tr"),
+            th = el("th", names[r.backend]);
+          th.scope = "row";
+          th.style.color = colors[r.backend];
+          tr.append(th);
+          for (const t of [
+            fmt(r.estimate, 9),
+            fmt(r.ci_low, 9) + " – " + fmt(r.ci_high, 9),
+            Number.isFinite(r.speedup) ? fmt(r.speedup, 2) + "×" : "—",
+            Number.isFinite(r.efficiency)
+              ? fmt(r.efficiency * 100, 1) + "%"
+              : "—",
+            Number.isFinite(r.command_seconds)
+              ? fmt(r.command_seconds, 2) + " s"
+              : "—",
+          ])
+            tr.append(el("td", t));
+          $("results").append(tr);
+        }
+        const s = { ...request, ...data.settings };
+        $("settings").textContent =
+          (s.problem === "pi" ? "π estimation" : s.dimensions + "D integral") +
+          " · " +
+          fmt(s.samples, 0) +
+          " samples · " +
+          s.runs +
+          " trials · " +
+          s.workers +
+          " workers · block " +
+          s.block +
+          " · " +
+          s.rng +
+          " streams" +
+          (s.rng === "repeated"
+            ? " · CONTROL: correlated samples; nominal CI may be misleading."
+            : "");
+      }
+      $("problem").addEventListener("change", sync);
+      $("rng").addEventListener("change", sync);
+      $("refresh").addEventListener("click", status);
+      // Keep an elapsed-time indicator while the server runs backends in order.
+      // We do not invent percent completion because the API returns one result.
+      $("experiment").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (busy || checking || !$("experiment").reportValidity()) return;
+        const request = {};
+        for (const k of ["samples", "runs", "workers", "block", "dimensions"])
+          request[k] = Number($(k).value);
+        request.problem = $("problem").value;
+        request.rng = $("rng").value;
+        if (
+          !Number.isInteger(request.samples) ||
+          request.samples < 10000 ||
+          request.samples > 10000000
+        ) {
+          showError(
+            "Samples must be an integer between 10,000 and 10,000,000.",
+          );
+          return;
+        }
+        busy = true;
+        sync();
+        $("error").hidden = true;
+        $("run").textContent = "Experiment running…";
+        $("notice").classList.add("running");
+        $("cards").setAttribute("aria-busy", "true");
+        const start = Date.now(),
+          tick = () => {
+            $("notice").textContent =
+              "Running available backends sequentially · " +
+              Math.floor((Date.now() - start) / 1000) +
+              " s elapsed. Waiting for measured results." +
+              (measured ? " Previous results remain visible below." : "");
+          };
+        tick();
+        const timer = setInterval(tick, 1000);
+        try {
+          const data = await jsonResponse(
+            await fetch("/api/run", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(request),
+            }),
+          );
+          if (
+            !Array.isArray(data.results) ||
+            !data.results.length ||
+            data.results.some(
+              (r) =>
+                !Object.hasOwn(names, r.backend) ||
+                !Number.isFinite(r.median_ms) ||
+                r.median_ms < 0 ||
+                !Array.isArray(r.rows),
+            )
+          )
+            throw Error("The backend returned no valid measured results.");
+          render(data, request);
+          measured = data;
+          $("notice").textContent =
+            "Experiment complete · " +
+            data.results.length +
+            " backends measured · " +
+            ((Date.now() - start) / 1000).toFixed(1) +
+            " s elapsed. Downloads ready.";
+        } catch (e) {
+          showError(e.message);
+          $("notice").textContent = measured
+            ? "Run failed. Previous successful measurements are still displayed."
+            : "Run failed. No measurements to display.";
+        } finally {
+          clearInterval(timer);
+          busy = false;
+          sync();
+          $("run").textContent = "Run experiment ↗";
+          $("notice").classList.remove("running");
+          $("cards").removeAttribute("aria-busy");
+        }
+      });
+      function download(content, type, ext) {
+        const url = URL.createObjectURL(new Blob([content], { type })),
+          a = el("a");
+        a.href = url;
+        a.download =
+          "parallel-measurements-" +
+          new Date().toISOString().replace(/[:.]/g, "-") +
+          "." +
+          ext;
+        document.body.append(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+      $("json").addEventListener("click", () => {
+        if (measured)
+          download(
+            JSON.stringify(measured, null, 2),
+            "application/json",
+            "json",
+          );
+      });
+      $("csv").addEventListener("click", () => {
+        if (!measured) return;
+        const rows = [];
+        for (const r of measured.results) {
+          const base = {
+            backend: r.backend,
+            median_ms: r.median_ms,
+            speedup: r.speedup,
+            efficiency: r.efficiency,
+            last_estimate: r.estimate,
+            last_ci_low: r.ci_low,
+            last_ci_high: r.ci_high,
+            command_seconds: r.command_seconds,
+          };
+          for (const [k, v] of Object.entries(measured.settings || {}))
+            base["setting_" + k] = v;
+          if (!r.rows.length) rows.push(base);
+          r.rows.forEach((row, i) => {
+            const record = { ...base, trial_index: i + 1 };
+            for (const [k, v] of Object.entries(row)) record["trial_" + k] = v;
+            rows.push(record);
+          });
+        }
+        const keys = [...new Set(rows.flatMap(Object.keys))],
+          cell = (v) => {
+            let s =
+              v == null
+                ? ""
+                : typeof v === "object"
+                  ? JSON.stringify(v)
+                  : String(v);
+            if (typeof v === "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
+            return '"' + s.replace(/"/g, '""') + '"';
+          };
+        download(
+          [
+            keys.map(cell).join(","),
+            ...rows.map((r) => keys.map((k) => cell(r[k])).join(",")),
+          ].join("\r\n"),
+          "text/csv;charset=utf-8",
+          "csv",
+        );
+      });
+      // Deterministic teaching illustration only: these are not sampled points
+      // from the C++ benchmark and never affect the reported numeric results.
+      function draw() {
+        const c = $("illustration"),
+          rect = c.getBoundingClientRect(),
+          dpr = window.devicePixelRatio || 1;
+        c.width = rect.width * dpr;
+        c.height = rect.height * dpr;
+        const ctx = c.getContext("2d");
+        if (!ctx) return;
+        ctx.scale(dpr, dpr);
+        const size = Math.min(rect.width - 65, 160),
+          x = (rect.width - size) / 2,
+          y = rect.height - 28;
+        ctx.strokeStyle = "#9ca99a";
+        ctx.strokeRect(x, y - size, size, size);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.arc(x, y, size, -Math.PI / 2, 0);
+        ctx.closePath();
+        ctx.fillStyle = "#28644d0a";
+        ctx.fill();
+        ctx.strokeStyle = "#28644d";
+        ctx.stroke();
+        let seed = 71;
+        const rand = () => {
+          seed = (seed * 16807) % 2147483647;
+          return seed / 2147483647;
+        };
+        for (let i = 0; i < 145; i++) {
+          const a = rand(),
+            b = rand();
+          ctx.fillStyle = a * a + b * b <= 1 ? "#28644d" : "#ae5336";
+          ctx.beginPath();
+          ctx.arc(x + a * size, y - b * size, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.fillStyle = "#53674f";
+        ctx.font = "11px system-ui";
+        ctx.fillText("0", x - 12, y + 14);
+        ctx.fillText("1", x + size - 3, y + 15);
+        ctx.fillText("1", x - 14, y - size + 4);
+        ctx.fillText("x", x + size + 12, y + 4);
+        ctx.fillText("y", x - 14, y - size - 10);
+      }
+      window.addEventListener("resize", draw);
+      cards();
+      draw();
+      status();
+
+      // The same glossary is available by mouse, keyboard and touch. Its text
+      // explains measurement scope rather than promising scientific guarantees.
+      const glossary = {
+        samples: [
+          "Samples per trial",
+          "One sample is one random point for π, or one random d-dimensional vector for the integral.",
+          "More independent samples reduce typical Monte Carlo error like 1/√N. They also increase the work.",
+        ],
+        runs: [
+          "Trials",
+          "Complete repetitions with different recorded seeds. Warm-ups are not included in the displayed trials.",
+          "Repetitions reveal timing variation and variation of the estimate. A few demonstration trials cannot prove 95% coverage.",
+        ],
+        workers: [
+          "CPU workers",
+          "OpenMP uses threads sharing memory. MPI uses separate processes on this same laptop.",
+          "Changing the worker count shows how dividing fixed sample chunks affects runtime. It does not change the CPU sample-to-stream mapping.",
+        ],
+        block: [
+          "CUDA block size",
+          "The number of GPU threads in each block. Blocks use shared memory to combine partial sums.",
+          "Block size affects scheduling and resource use. It is not the number of CPU cores and is not used to calculate GPU efficiency.",
+        ],
+        problem: [
+          "Estimation problem",
+          "π uses a quarter-circle hit test. The integral averages squared coordinates on the unit hypercube.",
+          "Both have known answers, letting us check accuracy without relying on another approximate solver.",
+        ],
+        dimensions: [
+          "Integral dimensions",
+          "The number d of coordinates generated for each integration sample. The exact integral remains 1/3.",
+          "This checks the implementation with different work per sample. Its variance falls with d by construction; this does not solve the curse of dimensionality.",
+        ],
+        rng: [
+          "Random stream strategy",
+          "Separated CPU streams belong to chunks; separated CUDA Philox subsequences belong to global thread IDs. Repeated mode deliberately reuses streams.",
+          "The control tests how correlation can inflate variance and make independence-based intervals misleading. Different seeds alone do not prove independence.",
+        ],
+        median: [
+          "Median total runtime",
+          "The middle trial runtime after sorting the measurements. It includes RNG, sampling and reduction; CUDA total also includes allocation and result transfer.",
+          "It is less sensitive to an isolated slow trial than the mean. Process startup and warm-ups are excluded, so it is not the full time you waited.",
+        ],
+        speedup: [
+          "Speedup",
+          "Median sequential trial time divided by median parallel trial time at the same selected settings.",
+          "It expresses the observed acceleration. CPU uses MT19937-64 and CUDA uses Philox, so GPU speedup includes generator differences.",
+        ],
+        efficiency: [
+          "CPU parallel efficiency",
+          "Speedup divided by the actual number of CPU threads or MPI ranks. A value of 50% means half the ideal linear speedup.",
+          "It helps interpret CPU scaling overhead. It is deliberately not reported for CUDA; dividing by GPU thread count would be misleading.",
+        ],
+        estimate: [
+          "Last estimate",
+          "The estimate from the final measured trial, not the mean across trials. π is approximately 3.141592653589793; the integral is exactly 1/3.",
+          "The final estimate is paired with its own confidence interval so different trials are not accidentally mixed.",
+        ],
+        ci: [
+          "Approximate 95% confidence interval",
+          "Mean sample value ± 1.96 times the estimated standard error. The sample variance uses N−1 in its denominator.",
+          "Under the independence and approximation assumptions, this procedure covers the true value in about 95% of repeated experiments. It is not a probability assigned to a fixed π after seeing the interval.",
+        ],
+        command: [
+          "Command time",
+          "Elapsed wall-clock time for the entire executable command, including startup, warm-ups and all measured trials. MPI process launch and CUDA context setup add costs here.",
+          "It explains why waiting for the demo takes longer than the per-trial runtime. Do not divide this by one trial’s sample count.",
+        ],
+        throughput: [
+          "Samples per second",
+          "Samples in one trial divided by its median total runtime in seconds.",
+          "This gives a common work-rate measure across implementations. It is only comparable for the same problem and dimensions.",
+        ],
+        kernel: [
+          "GPU kernel median",
+          "Median CUDA-event time for the device kernel: Philox initialization, sampling and block reduction.",
+          "Comparing it with total trial time exposes allocation, copy and host overhead. CPU rows have no CUDA kernel time.",
+        ],
+        runtime_sd: [
+          "Runtime standard deviation",
+          "The spread of trial runtimes, measured in milliseconds.",
+          "It reveals timing instability from scheduling, clocks and other system effects. It does not measure uncertainty in π.",
+        ],
+        estimate_sd: [
+          "Estimate standard deviation",
+          "The spread of independently seeded trial estimates, in the units of the estimated quantity.",
+          "It measures empirical Monte Carlo variability. It is different from both runtime variation and an individual trial’s standard error.",
+        ],
+        coverage: [
+          "Observed interval coverage",
+          "The count of trial confidence intervals that contain the known answer, divided by the number of trials.",
+          "It checks whether nominal intervals behave plausibly. Three successes out of three are not evidence of true 100% coverage; the larger study uses 100 CUDA trials.",
+        ],
+        sequential: [
+          "Sequential C++",
+          "A serial loop processes all fixed sample chunks using MT19937-64.",
+          "It is the timing baseline and CPU correctness reference; it does not enter a one-thread OpenMP region.",
+        ],
+        openmp: [
+          "OpenMP",
+          "A static work-sharing loop distributes chunks among CPU threads and reduces the sum and squared sum.",
+          "Private chunk RNG states avoid shared-engine races. The two moments provide the estimate and its confidence interval.",
+        ],
+        mpi: [
+          "MPI",
+          "Ranks own chunks r, r+P, r+2P, and combine their moments using MPI_SUM. The reported time is the maximum rank duration.",
+          "This demonstrates process-based parallelism on one laptop. Timing includes the moment reduction but excludes the preceding barrier and timing-metadata reduction.",
+        ],
+        cuda: [
+          "CUDA",
+          "GPU threads use Philox subsequences and a grid-stride loop; each block reduces its sample moments before a final host sum.",
+          "Many samples can be processed concurrently. Launch and allocation overhead can make CUDA slower for small inputs.",
+        ],
+      };
+      const tip = document.createElement("div");
+      tip.className = "explanation";
+      tip.id = "term-explanation";
+      tip.role = "tooltip";
+      tip.hidden = true;
+      document.body.append(tip);
+      let activeHelp = null,
+        closeHelp,
+        pinnedHelp = false;
+      function hideHelp() {
+        tip.hidden = true;
+        if (activeHelp) activeHelp.setAttribute("aria-expanded", "false");
+        activeHelp = null;
+        pinnedHelp = false;
+      }
+      function showHelp(button) {
+        clearTimeout(closeHelp);
+        if (activeHelp && activeHelp !== button) {
+          activeHelp.setAttribute("aria-expanded", "false");
+          pinnedHelp = false;
+        }
+        const [title, what, why] = glossary[button.dataset.term];
+        tip.replaceChildren(
+          el("strong", title),
+          el("p", "What: " + what),
+          el("p", "Why: " + why),
+          el("small", "Esc to close · tap ? to pin or dismiss"),
+        );
+        tip.hidden = false;
+        activeHelp = button;
+        button.setAttribute("aria-expanded", "true");
+        const r = button.getBoundingClientRect();
+        const h = tip.offsetHeight,
+          w = tip.offsetWidth;
+        tip.style.left =
+          Math.max(14, Math.min(r.left, innerWidth - w - 14)) + "px";
+        tip.style.top =
+          Math.max(
+            14,
+            r.bottom + h + 12 < innerHeight ? r.bottom + 9 : r.top - h - 9,
+          ) + "px";
+      }
+      function help(parent, key) {
+        if (!parent || parent.querySelector(".explain")) return;
+        const b = el("button", "?", "explain");
+        b.type = "button";
+        b.dataset.term = key;
+        b.setAttribute("aria-label", "Explain " + glossary[key][0]);
+        b.setAttribute("aria-describedby", "term-explanation");
+        b.setAttribute("aria-expanded", "false");
+        b.onmouseenter = () => showHelp(b);
+        b.onmouseleave = () => {
+          if (!pinnedHelp) closeHelp = setTimeout(hideHelp, 200);
+        };
+        b.onfocus = () => showHelp(b);
+        b.onblur = () => {
+          if (!pinnedHelp) closeHelp = setTimeout(hideHelp, 200);
+        };
+        b.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (activeHelp === b && pinnedHelp) hideHelp();
+          else {
+            showHelp(b);
+            pinnedHelp = true;
+          }
+        };
+        parent.append(b);
+        parent.addEventListener("mouseenter", () => showHelp(b));
+        parent.addEventListener("mouseleave", () => {
+          if (!pinnedHelp) closeHelp = setTimeout(hideHelp, 200);
+        });
+      }
+      tip.onmouseenter = () => clearTimeout(closeHelp);
+      tip.onmouseleave = () => {
+        if (!pinnedHelp) hideHelp();
+      };
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") hideHelp();
+      });
+      document.addEventListener("click", (e) => {
+        if (!tip.contains(e.target) && !e.target.closest(".explain"))
+          hideHelp();
+      });
+      window.addEventListener("scroll", hideHelp, { passive: true });
+      for (const key of [
+        "samples",
+        "runs",
+        "workers",
+        "block",
+        "problem",
+        "dimensions",
+        "rng",
+      ]) {
+        const label = document.querySelector('label[for="' + key + '"]');
+        if (label) {
+          const wrap = el("span");
+          label.insertAdjacentElement("afterend", wrap);
+          wrap.style.cssText = "float:right;position:relative;margin-top:-27px";
+          help(wrap, key);
+          label.addEventListener("mouseenter", () =>
+            showHelp(wrap.querySelector(".explain")),
+          );
+          label.addEventListener("mouseleave", () => {
+            if (!pinnedHelp) closeHelp = setTimeout(hideHelp, 200);
+          });
+        }
+      }
+      const columnTerms = {
+        "Last estimate": "estimate",
+        "Last-trial CI": "ci",
+        Speedup: "speedup",
+        Efficiency: "efficiency",
+        "Command time": "command",
+        "Samples / second": "throughput",
+        "GPU kernel median": "kernel",
+        "Runtime SD": "runtime_sd",
+        "Estimate SD": "estimate_sd",
+        "CI contains truth": "coverage",
+      };
+      for (const th of document.querySelectorAll("thead th")) {
+        const key = columnTerms[th.textContent.trim()];
+        if (key) help(th, key);
+      }
+      help(document.getElementById("runtime-heading"), "median");
+      function cardHelp() {
+        for (const [index, card] of [
+          ...document.querySelectorAll(".card"),
+        ].entries())
+          help(card.querySelector(".card-label"), Object.keys(names)[index]);
+      }
+      new MutationObserver(cardHelp).observe(document.getElementById("cards"), {
+        childList: true,
+      });
+      cardHelp();
+    </script>
+  </body>
+</html>

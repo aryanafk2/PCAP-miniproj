@@ -23,5 +23,10 @@ legacy/
 /results/cuda_study_*/
 /results/cuda_energy_*/
 /results/cuda_validation_*/
+/results/comparison_*/
+/results/20261103T065553Z/
+/results/20261103T065757Z/
 /scripts/cuda_report.py
+/scripts/build_project_report.py
+/scripts/build_project_report_docx.cjs
 /requirements-analysis.txt

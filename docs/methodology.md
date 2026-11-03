@@ -47,6 +47,12 @@ dispersion. S=Tserial/Tparallel; E=S/P only for CPU threads or MPI processes.
 CUDA thread count is not an appropriate denominator for efficiency.
 Run plugged in and idle; capture hardware, compiler, driver and power state.
 
+OpenMP records the actual team size and times parallel-region creation, sampling
+and reduction. MPI times local sampling and the moment reduction, reports the
+maximum rank duration, and excludes MPI startup, the pre-trial barrier and the
+timing-metadata reduction. CPU streams are identical across worker counts;
+integral sums may differ in their last bits because reduction order changes.
+
 ## GPU Profiling and Energy
 
 Use Nsight Compute's SpeedOfLight/occupancy/instruction/memory sections.
@@ -57,7 +63,7 @@ integer RNG work. Never infer exact independence or bottlenecks from pi error.
 Run one CUDA configuration continuously for at least 15 seconds. Record
 timestamped power and integrate using the trapezoidal rule. Report GPU-only
 energy, elapsed wall time, completed measured samples and samples/joule.
-The window includes process setup and host work; label its scope and keep
+The measured window excludes process setup and includes host work; label its scope and keep
 idle power separate if subtracting it. This is not CPU/system energy.
 
 ## Sources

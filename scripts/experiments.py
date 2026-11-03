@@ -4,6 +4,8 @@ import csv
 import io
 import json
 import platform
+import random
+import hashlib
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,13 +20,22 @@ def main():
     parser.add_argument('--problem', choices=['pi', 'integral'], default='pi')
     parser.add_argument('--dimensions', type=int, default=8)
     parser.add_argument('--include-team-code', action='store_true')
+    parser.add_argument('--rounds', type=int, default=1, help='Interleaved rounds with disjoint run seeds')
+    parser.add_argument('--order-seed', type=int, default=20261103)
     args = parser.parse_args()
+    if args.runs < 2 or args.rounds < 1 or not all(2 <= n <= 10**12 for n in args.samples):
+        parser.error('Need at least two runs, one round and valid sample sizes')
     stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-    out = ROOT / 'results' / stamp
+    out = ROOT / 'results' / ('comparison_' + stamp)
     out.mkdir(parents=True)
     metadata = {'utc': stamp, 'platform': platform.platform(), 'runs': args.runs,
                 'samples': args.samples, 'problem': args.problem, 'dimensions': args.dimensions,
-                'scope': 'single laptop', 'commands': []}
+                'scope': 'single laptop', 'commands': [], 'rounds': args.rounds,
+                'order_seed': args.order_seed, 'order': 'shuffled within each round',
+                'cpu': platform.processor(),
+                'power_plan': subprocess.getoutput('powercfg /getactivescheme')}
+    metadata['binary_sha256'] = {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+                                 for p in (ROOT/'build').glob('*.exe')}
     metadata['gpu'] = subprocess.check_output(
         ['nvidia-smi', '--query-gpu=name,driver_version', '--format=csv'], text=True)
     configs = [('sequential', [], [])]
@@ -33,20 +44,25 @@ def main():
         configs += [('openmp', ['--workers', str(w)], []) for w in (1, 2, 4, 8)]
         configs += [('mpi', [], ['mpiexec', '-n', str(w)]) for w in (1, 2, 4, 8)]
     try:
-        for n in args.samples:
-            for rng in ('separated', 'repeated'):
-                for backend, extra, prefix in configs:
-                    command = [*prefix, str(ROOT/'build'/f'{backend}.exe'), '--samples', str(n),
-                               '--runs', str(args.runs), '--rng', rng, '--problem', args.problem,
-                               '--dimensions', str(args.dimensions), *extra]
-                    result = subprocess.run(command, check=True, capture_output=True, text=True, cwd=ROOT)
-                    rows = list(csv.DictReader(io.StringIO(result.stdout)))
-                    if len(rows) != args.runs or any(r['status'] != 'implemented' for r in rows):
-                        raise RuntimeError('Refusing incomplete/starter results')
-                    index = len(metadata['commands'])
-                    (out/f'{index:03d}_{backend}_{n}_{rng}.csv').write_text(result.stdout, encoding='utf-8')
-                    metadata['commands'].append(command)
-                    print(backend, n, rng, extra or prefix, flush=True)
+        order = random.Random(args.order_seed)
+        for round_id in range(args.rounds):
+            jobs = [(n, rng, backend, extra, prefix) for n in args.samples
+                    for rng in ('separated', 'repeated') for backend, extra, prefix in configs]
+            order.shuffle(jobs)
+            for n, rng, backend, extra, prefix in jobs:
+                # A fresh seed range per round prevents duplicate statistical
+                # replicates when the analyzer combines the round CSV files.
+                command = [*prefix, str(ROOT/'build'/f'{backend}.exe'), '--samples', str(n),
+                           '--runs', str(args.runs), '--rng', rng, '--problem', args.problem,
+                           '--dimensions', str(args.dimensions), '--seed', str(12345+round_id*args.runs), *extra]
+                result = subprocess.run(command, check=True, capture_output=True, text=True, cwd=ROOT, timeout=600)
+                rows = list(csv.DictReader(io.StringIO(result.stdout)))
+                if len(rows) != args.runs or any(r['status'] != 'implemented' for r in rows):
+                    raise RuntimeError('Refusing incomplete/starter results')
+                index = len(metadata['commands'])
+                (out/f'{index:03d}_{backend}_{n}_{rng}.csv').write_text(result.stdout, encoding='utf-8')
+                metadata['commands'].append(command)
+                print(backend, n, rng, extra or prefix, flush=True)
     finally:
         (out/'metadata.json').write_text(json.dumps(metadata, indent=2), encoding='utf-8')
     print(out)

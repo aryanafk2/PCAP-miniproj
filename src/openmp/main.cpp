@@ -1,23 +1,37 @@
-// Owner: Dev Visoulia. Compilable reference skeleton; parallel work is TODO.
+// Component: Dev Visoulia. Each fixed sample chunk owns its random stream.
 #include "../common.hpp"
 #include <omp.h>
 
 int main(int argc, char** argv) {
     try {
         auto o = parse_options(argc, argv);
-        if (!o.allow_starter) throw std::runtime_error("OpenMP starter: complete TODOs, or use --allow-starter for reference output.");
+        omp_set_dynamic(0); // Request a stable team; record the actual team below.
         omp_set_num_threads(o.workers);
         csv_header();
         for (int run = -o.warmups; run < o.runs; ++run) {
             auto seed = o.seed + static_cast<std::uint64_t>(std::max(0, run));
             double start = omp_get_wtime();
-            // TODO(Dev): parallel-for over fixed chunk IDs. Reduce BOTH sum
-            // and squares; keep the sample-to-stream mapping in cpu_chunk().
-            auto m = serial_count(o, seed);
+            double sum = 0, squares = 0;
+            int actual_workers = 1;
+            const auto chunks = static_cast<std::int64_t>((o.samples + chunk_size - 1)/chunk_size);
+            // RNG state lives inside cpu_chunk, so threads never share engines.
+            // Reductions combine private accumulators after the work is done.
+            #pragma omp parallel reduction(+:sum,squares)
+            {
+                #pragma omp single
+                actual_workers = omp_get_num_threads();
+                #pragma omp for schedule(static)
+                for (std::int64_t chunk = 0; chunk < chunks; ++chunk) {
+                    auto part = cpu_chunk(static_cast<std::uint64_t>(chunk), o, seed);
+                    sum += part.sum;
+                    squares += part.squares;
+                }
+            }
+            Moments m{sum, squares};
             double ms = 1000*(omp_get_wtime()-start);
-            if (run >= 0) print_result(o, "openmp", "starter_serial", "mt19937_64", run+1, seed, m, ms);
+            auto measured = o;
+            measured.workers = actual_workers;
+            if (run >= 0) print_result(measured, "openmp", "implemented", "mt19937_64", run+1, seed, m, ms);
         }
-        // TODO(Dev): compare 1/2/4/8 threads, verify counts match baseline,
-        // record actual team size, then change status to implemented.
     } catch (const std::exception& e) { std::cerr << e.what() << '\n'; return 1; }
 }
